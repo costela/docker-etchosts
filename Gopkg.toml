@@ -1,0 +1,12 @@
+
+[[constraint]]
+  name = "docker.io/go-docker"
+  version = "1.0.0"
+  
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.6"
+
+[[constraint]]
+  name = "github.com/cenkalti/backoff"
+  revision = "b7325b0f3f1097c6546ea5e83c4a23267e58ad71"
