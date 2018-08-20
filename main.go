@@ -18,15 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
-	"context"
-	"fmt"
-
-	"github.com/cenkalti/backoff"
-
 	docker "docker.io/go-docker"
-	"docker.io/go-docker/api/types"
-	"docker.io/go-docker/api/types/events"
-	"docker.io/go-docker/api/types/filters"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -40,16 +32,9 @@ func main() {
 	}
 	defer client.Close()
 
-	var event events.Message
-	eventOpts := types.EventsOptions{
-		Filters: filters.NewArgs(
-			filters.Arg("type", "container"),
-			filters.Arg("event", "start"),
-			filters.Arg("event", "die"),
-		),
-	}
-
 	for {
+		waitForConnection(client)
+
 		initialContent, err := getAllIPsToNames(client)
 		if err != nil {
 			log.Fatalf("error getting containers: %s", err)
@@ -58,54 +43,7 @@ func main() {
 		log.Info("writing current content")
 		syncEtcHosts(initialContent)
 
-		events, errors := client.Events(context.Background(), eventOpts)
-	innerLoop:
-		for {
-			select {
-			case event = <-events:
-				switch event.Action {
-				case "start":
-					ipsToNames, err := getIPsToNames(client, event.Actor.Attributes["name"])
-					if err != nil {
-						log.WithFields(
-							log.Fields{"container": event.Actor.ID},
-						).Errorf("could not get info for container: %s", err)
-						continue
-					}
-					err = addToEtcHosts(ipsToNames)
-					if err != nil {
-						log.WithFields(
-							log.Fields{"container": event.Actor.ID},
-						).Errorf("could not add container to hosts file: %s", err)
-					}
-				case "die":
-					// We remove by name because we cannot get the container's IP after it has been destroyed.
-					// Names are supposed to be kept unique by the docker deamon.}
-					removeFromEtcHosts(event.Actor.Attributes["name"])
-				}
-			case err = <-errors:
-				log.Errorf("error fetching event: %s", err)
-
-				client.Close()
-				err := backoff.Retry(func() error {
-					log.Info("retrying connection to docker")
-					client, err = docker.NewEnvClient()
-					if err != nil {
-						return fmt.Errorf("error starting docker client: %s", err)
-					}
-					_, err = client.Ping(context.Background())
-					if err != nil {
-						return fmt.Errorf("error pinging docker server: %s", err)
-					}
-					return nil
-				}, backoff.NewExponentialBackOff())
-				if err != nil {
-					log.Fatal(err)
-				}
-				log.Info("reconnected to docker")
-				defer client.Close() // client changed
-				break innerLoop
-			}
-		}
+		log.Info("listening for docker events")
+		listenForEvents(client)
 	}
 }
