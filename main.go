@@ -56,16 +56,7 @@ func main() {
 
 	for {
 		waitForConnection(client)
-
-		initialContent, err := getAllIPsToNames(client)
-		if err != nil {
-			log.Fatalf("error getting containers: %s", err)
-		}
-
-		log.Info("writing current content")
-		syncEtcHosts(initialContent)
-
 		log.Info("listening for docker events")
-		listenForEvents(client)
+		syncAndListenForEvents(client)
 	}
 }

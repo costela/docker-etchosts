@@ -57,9 +57,10 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 	}
 
 	for netName, netInfo := range containerFull.NetworkSettings.Networks {
-		names := make([]string, 4) // 4 is worst-case size if container in a compose project (see below)
+		names := make([]string, 0, 4) // 4 is worst-case size if container in a compose project (see below)
 
 		appendNames := func(names []string, name string) []string {
+			log.Debugf("found base name %s with IP %s", name, netInfo.IPAddress)
 			names = append(names, fmt.Sprintf("%s", name))
 			names = append(names, fmt.Sprintf("%s.%s", name, netName))
 			if proj, ok := containerFull.Config.Labels["com.docker.compose.project"]; ok {
@@ -80,44 +81,48 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 	return ipsToNames, nil
 }
 
-func listenForEvents(client dockerClienter) {
+func syncAndListenForEvents(client dockerClienter) {
+
 	eventOpts := types.EventsOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("type", "container"),
 			filters.Arg("event", "start"),
-			filters.Arg("event", "die"),
+			filters.Arg("event", "destroy"),
 		),
 	}
+
+	// helper channel to ensure we run once without
+	kickoff := make(chan bool, 1)
+	kickoff <- true
 
 	events, errors := client.Events(context.Background(), eventOpts)
 loop:
 	for {
 		select {
+		case <-kickoff:
+			log.Infof("running initial sync")
+			getAndWrite(client)
 		case event := <-events:
-			switch event.Action {
-			case "start":
-				ipsToNames, err := getIPsToNames(client, event.Actor.Attributes["name"])
-				if err != nil {
-					log.WithFields(
-						log.Fields{"container": event.Actor.ID},
-					).Errorf("could not get info for container: %s", err)
-					continue
-				}
-				err = addToEtcHosts(ipsToNames)
-				if err != nil {
-					log.WithFields(
-						log.Fields{"container": event.Actor.ID},
-					).Errorf("could not add container to hosts file: %s", err)
-				}
-			case "die":
-				// We remove by name because we cannot get the container's IP after it has been stopped.
-				// Names are supposed to be kept unique by the docker deamon.
-				removeFromEtcHosts(event.Actor.Attributes["name"])
-			}
+			log.Infof("got %s event for %s", event.Action, event.Actor.Attributes["name"])
+			getAndWrite(client)
 		case err := <-errors:
 			log.Errorf("error fetching event: %s", err)
 			break loop
 		}
+	}
+}
+
+func getAndWrite(client dockerClienter) {
+	log.Info("fetching container infos")
+	currentContent, err := getAllIPsToNames(client)
+	if err != nil {
+		log.Errorf("error getting container infos: %s", err)
+	}
+
+	log.Info("writing current state")
+	err = writeToEtcHosts(currentContent)
+	if err != nil {
+		log.Errorf("error syncing hosts: %s", err)
 	}
 }
 
