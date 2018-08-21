@@ -18,7 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	docker "docker.io/go-docker"
 
@@ -48,6 +51,13 @@ func main() {
 
 	log.SetLevel(logLevelMap[strings.ToLower(config.LogLevel)])
 
+	quitSig := make(chan os.Signal)
+	signal.Notify(quitSig, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		<-quitSig
+		cleanup()
+	}()
+
 	client, err := docker.NewEnvClient()
 	if err != nil {
 		log.Fatalf("error starting docker client: %s", err)
@@ -59,4 +69,10 @@ func main() {
 		log.Info("listening for docker events")
 		syncAndListenForEvents(client)
 	}
+}
+
+func cleanup() {
+	log.Info("cleaning up hosts file")
+	writeToEtcHosts(ipsToNamesMap{})
+	os.Exit(0)
 }
