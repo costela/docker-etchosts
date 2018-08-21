@@ -18,13 +18,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
+	"strings"
+
 	docker "docker.io/go-docker"
 
+	"github.com/kelseyhightower/envconfig"
 	log "github.com/sirupsen/logrus"
 )
 
+type ConfigSpec struct {
+	LogLevel     string `default:"warn" split_words:"true"`
+	EtcHostsPath string `default:"/etc/hosts" split_words:"true"`
+}
+
+var logLevelMap = map[string]log.Level{
+	"debug": log.DebugLevel,
+	"info":  log.InfoLevel,
+	"warn":  log.WarnLevel,
+	"error": log.ErrorLevel,
+}
+
+var config ConfigSpec
+
 func main() {
-	log.SetLevel(log.InfoLevel) // TODO: make configurable
+	err := envconfig.Process("etchosts", &config)
+	if err != nil {
+		log.Fatalf("could not parse settings from env: %s", err)
+	}
+
+	log.SetLevel(logLevelMap[strings.ToLower(config.LogLevel)])
 
 	client, err := docker.NewEnvClient()
 	if err != nil {
