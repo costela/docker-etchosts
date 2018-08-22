@@ -132,6 +132,7 @@ func waitForConnection(client dockerClienter) {
 		log.Info("retrying connection to docker")
 		_, err := client.Ping(context.Background())
 		if err != nil {
+			log.Errorf("error pinging docker server: %s", err)
 			return fmt.Errorf("error pinging docker server: %s", err)
 		}
 		return nil

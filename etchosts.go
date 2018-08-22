@@ -17,8 +17,9 @@ const (
 )
 
 func writeToEtcHosts(ipsToNames ipsToNamesMap) error {
-	// this will fail if the file doesn't exist, which is probably ok
-	etcHosts, err := os.Open(config.EtcHostsPath)
+	// We do not want to create the hosts file; if it's not there, we probably have the wrong path.
+	// Open RW because we might have to write to it (see movePreservePerms)
+	etcHosts, err := os.OpenFile(config.EtcHostsPath, os.O_RDWR, 0644)
 	if err != nil {
 		return fmt.Errorf("could not open %s for reading: %s", config.EtcHostsPath, err)
 	}
@@ -55,7 +56,10 @@ func writeToEtcHosts(ipsToNames ipsToNamesMap) error {
 			}
 			ip := tokens[0]
 			if names, ok := ipsToNames[ip]; ok {
-				writeEntryWithBanner(tmp, ip, names)
+				err = writeEntryWithBanner(tmp, ip, names)
+				if err != nil {
+					return err
+				}
 				delete(ipsToNames, ip) // otherwise we'll append it again below
 			}
 		} else {
@@ -63,10 +67,16 @@ func writeToEtcHosts(ipsToNames ipsToNamesMap) error {
 			fmt.Fprintf(tmp, "%s\n", line)
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("error reading %s: %s", config.EtcHostsPath, err)
+	}
 
 	// append remaining entries to file
 	for ip, names := range ipsToNames {
-		writeEntryWithBanner(tmp, ip, names)
+		err = writeEntryWithBanner(tmp, ip, names)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = movePreservePerms(tmp, etcHosts)
@@ -77,12 +87,17 @@ func writeToEtcHosts(ipsToNames ipsToNamesMap) error {
 	return nil
 }
 
-func writeEntryWithBanner(tmp io.Writer, ip string, names []string) {
+func writeEntryWithBanner(tmp io.Writer, ip string, names []string) error {
 	if len(names) > 0 {
 		log.Debugf("writing entry for %s (%s)", ip, names)
-		fmt.Fprintf(tmp, "%s\n", banner)
-		fmt.Fprintf(tmp, "%s\t%s\n", ip, strings.Join(names, " "))
+		if _, err := fmt.Fprintf(tmp, "%s\n", banner); err != nil {
+			return fmt.Errorf("error writing entry for %s: %s", ip, err)
+		}
+		if _, err := fmt.Fprintf(tmp, "%s\t%s\n", ip, strings.Join(names, " ")); err != nil {
+			return fmt.Errorf("error writing entry for %s: %s", ip, err)
+		}
 	}
+	return nil
 }
 
 func movePreservePerms(src, dst *os.File) error {
@@ -93,7 +108,20 @@ func movePreservePerms(src, dst *os.File) error {
 
 	err = os.Rename(src.Name(), dst.Name())
 	if err != nil {
-		return fmt.Errorf("could not rename to %s: %s", config.EtcHostsPath, err)
+		log.Infof("could not rename to %s; falling back to less safe direct-write (%s)", config.EtcHostsPath, err)
+
+		if _, err := src.Seek(0, io.SeekStart); err != nil {
+			return err
+		}
+		if _, err := dst.Seek(0, io.SeekStart); err != nil {
+			return err
+		}
+		if err := dst.Truncate(0); err != nil {
+			return err
+		}
+
+		_, err = io.Copy(dst, src)
+		return err
 	}
 
 	// ensure we're not running with some umask that might break things

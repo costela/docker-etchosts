@@ -65,7 +65,7 @@ func main() {
 
 	client, err := docker.NewEnvClient()
 	if err != nil {
-		log.Fatalf("error starting docker client: %s", err)
+		log.Fatalf("error initializing docker client: %s", err)
 	}
 	defer client.Close()
 
