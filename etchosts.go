@@ -79,7 +79,7 @@ func writeToEtcHosts(ipsToNames ipsToNamesMap) error {
 
 func writeEntryWithBanner(tmp io.Writer, ip string, names []string) {
 	if len(names) > 0 {
-		log.Infof("writing entry for %s (%s)", ip, names[0])
+		log.Debugf("writing entry for %s (%s)", ip, names)
 		fmt.Fprintf(tmp, "%s\n", banner)
 		fmt.Fprintf(tmp, "%s\t%s\n", ip, strings.Join(names, " "))
 	}

@@ -20,6 +20,7 @@ package main
 import (
 	"os"
 	"os/signal"
+	"reflect"
 	"strings"
 	"syscall"
 
@@ -49,7 +50,11 @@ func main() {
 		log.Fatalf("could not parse settings from env: %s", err)
 	}
 
-	log.SetLevel(logLevelMap[strings.ToLower(config.LogLevel)])
+	logLevel, ok := logLevelMap[strings.ToLower(config.LogLevel)]
+	if !ok {
+		log.Fatalf("unknown log level %s; valid values: %s", config.LogLevel, reflect.ValueOf(logLevelMap).MapKeys())
+	}
+	log.SetLevel(logLevel)
 
 	quitSig := make(chan os.Signal)
 	signal.Notify(quitSig, syscall.SIGTERM, syscall.SIGINT)
