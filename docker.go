@@ -94,6 +94,7 @@ func syncAndListenForEvents(client dockerClienter) {
 	// helper channel to ensure we run once without
 	kickoff := make(chan bool, 1)
 	kickoff <- true
+	defer close(kickoff)
 
 	events, errors := client.Events(context.Background(), eventOpts)
 loop:
