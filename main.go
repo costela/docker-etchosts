@@ -42,9 +42,9 @@ var logLevelMap = map[string]log.Level{
 	"error": log.ErrorLevel,
 }
 
-var config ConfigSpec
-
 func main() {
+	var config ConfigSpec
+
 	err := envconfig.Process("etchosts", &config)
 	if err != nil {
 		log.Fatalf("could not parse settings from env: %s", err)
@@ -60,7 +60,7 @@ func main() {
 	signal.Notify(quitSig, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		<-quitSig
-		cleanup()
+		cleanup(config)
 	}()
 
 	client, err := docker.NewEnvClient()
@@ -72,12 +72,12 @@ func main() {
 	for {
 		waitForConnection(client)
 		log.Info("listening for docker events")
-		syncAndListenForEvents(client)
+		syncAndListenForEvents(client, config)
 	}
 }
 
-func cleanup() {
+func cleanup(config ConfigSpec) {
 	log.Info("cleaning up hosts file")
-	writeToEtcHosts(ipsToNamesMap{})
+	writeToEtcHosts(ipsToNamesMap{}, config)
 	os.Exit(0)
 }

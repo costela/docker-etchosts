@@ -16,7 +16,7 @@ const (
 	banner = "# !!! managed by docker-etchosts !!!"
 )
 
-func writeToEtcHosts(ipsToNames ipsToNamesMap) error {
+func writeToEtcHosts(ipsToNames ipsToNamesMap, config ConfigSpec) error {
 	// We do not want to create the hosts file; if it's not there, we probably have the wrong path.
 	// Open RW because we might have to write to it (see movePreservePerms)
 	etcHosts, err := os.OpenFile(config.EtcHostsPath, os.O_RDWR, 0644)

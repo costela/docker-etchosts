@@ -81,7 +81,7 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 	return ipsToNames, nil
 }
 
-func syncAndListenForEvents(client dockerClienter) {
+func syncAndListenForEvents(client dockerClienter, config ConfigSpec) {
 
 	eventOpts := types.EventsOptions{
 		Filters: filters.NewArgs(
@@ -102,10 +102,10 @@ loop:
 		select {
 		case <-kickoff:
 			log.Infof("running initial sync")
-			getAndWrite(client)
+			getAndWrite(client, config)
 		case event := <-events:
 			log.Infof("got %s event for %s", event.Action, event.Actor.Attributes["name"])
-			getAndWrite(client)
+			getAndWrite(client, config)
 		case err := <-errors:
 			log.Errorf("error fetching event: %s", err)
 			break loop
@@ -113,7 +113,7 @@ loop:
 	}
 }
 
-func getAndWrite(client dockerClienter) {
+func getAndWrite(client dockerClienter, config ConfigSpec) {
 	log.Info("fetching container infos")
 	currentContent, err := getAllIPsToNames(client)
 	if err != nil {
@@ -121,15 +121,15 @@ func getAndWrite(client dockerClienter) {
 	}
 
 	log.Info("writing current state")
-	err = writeToEtcHosts(currentContent)
+	err = writeToEtcHosts(currentContent, config)
 	if err != nil {
 		log.Errorf("error syncing hosts: %s", err)
 	}
 }
 
-func waitForConnection(client dockerClienter) {
+func waitForConnection(client dockerClientPinger) {
 	err := backoff.Retry(func() error {
-		log.Info("retrying connection to docker")
+		log.Info("attempting connection to docker")
 		_, err := client.Ping(context.Background())
 		if err != nil {
 			log.Errorf("error pinging docker server: %s", err)
