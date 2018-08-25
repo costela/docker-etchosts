@@ -18,6 +18,9 @@ type dockerClienter interface {
 	ContainerList(context.Context, types.ContainerListOptions) ([]types.Container, error)
 	ContainerInspect(context.Context, string) (types.ContainerJSON, error)
 	Events(context.Context, types.EventsOptions) (<-chan events.Message, <-chan error)
+}
+
+type dockerClientPinger interface {
 	Ping(context.Context) (types.Ping, error)
 }
 
@@ -57,15 +60,26 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 	}
 
 	for netName, netInfo := range containerFull.NetworkSettings.Networks {
+		if netName == "none" {
+			continue
+		}
+
 		names := make([]string, 0, 4) // 4 is worst-case size if container in a compose project (see below)
+
+		maybeAppendNet := func(names []string, name string) []string {
+			if netName != "bridge" {
+				return append(names, fmt.Sprintf("%s.%s", name, netName))
+			}
+			return names
+		}
 
 		appendNames := func(names []string, name string) []string {
 			log.Debugf("found base name %s with IP %s", name, netInfo.IPAddress)
 			names = append(names, fmt.Sprintf("%s", name))
-			names = append(names, fmt.Sprintf("%s.%s", name, netName))
+			names = maybeAppendNet(names, name)
 			if proj, ok := containerFull.Config.Labels["com.docker.compose.project"]; ok {
 				names = append(names, fmt.Sprintf("%s.%s", name, proj))
-				names = append(names, fmt.Sprintf("%s.%s.%s", name, proj, netName))
+				names = maybeAppendNet(names, fmt.Sprintf("%s.%s", name, proj))
 			}
 			return names
 		}
