@@ -7,6 +7,8 @@ Automatically manages entries in hosts file (`/etc/hosts`) for local [docker](ht
 
 Its main use-case is working on multiple web-accessible projects without having to keep track of different exported ports, instead relying on predictable names.
 
+Inspired by [`vagrant-hostmanager`](https://github.com/devopsgroup-io/vagrant-hostmanager) and [`docker-hostmanager`](https://github.com/iamluc/docker-hostmanager).
+
 ## Installation
 
 To install from source:
