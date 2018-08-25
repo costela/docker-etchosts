@@ -101,14 +101,20 @@ func writeEntryWithBanner(tmp io.Writer, ip string, names []string) error {
 }
 
 func movePreservePerms(src, dst *os.File) error {
+	if err := src.Sync(); err != nil {
+		return fmt.Errorf("could not sync changes to %s: %s", src.Name(), err)
+	}
+
 	etcHostsInfo, err := dst.Stat()
 	if err != nil {
 		return fmt.Errorf("could not stat %s: %s", dst.Name(), err)
 	}
 
+	// We try moving first because it's atomic; the fallback strategy is copying the content, which might generate a
+	// broken hosts file if some other process writes to it at the same time.
 	err = os.Rename(src.Name(), dst.Name())
 	if err != nil {
-		log.Infof("could not rename to %s; falling back to less safe direct-write (%s)", config.EtcHostsPath, err)
+		log.Infof("could not rename to %s; falling back to less safe direct-write (%s)", dst.Name(), err)
 
 		if _, err := src.Seek(0, io.SeekStart); err != nil {
 			return err
