@@ -88,7 +88,7 @@ func writeToEtcHosts(ipsToNames ipsToNamesMap, config ConfigSpec) error {
 }
 
 func writeEntryWithBanner(tmp io.Writer, ip string, names []string) error {
-	if len(names) > 0 {
+	if ip != "" && len(names) > 0 {
 		log.Debugf("writing entry for %s (%s)", ip, names)
 		if _, err := fmt.Fprintf(tmp, "%s\n%s\t%s\n", banner, ip, strings.Join(names, " ")); err != nil {
 			return fmt.Errorf("error writing entry for %s: %s", ip, err)
