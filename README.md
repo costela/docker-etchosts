@@ -56,6 +56,6 @@ All entries managed by `docker-etchosts` will be removed upon termination, retur
 
 `docker-etchosts` can be configured with the following environment variables:
 
-- **`ETCHOSTS_LOG_LEVEL`**: set the verbosity of log messages (default: `warn`)
+- **`ETCHOSTS_LOG_LEVEL`**: set the verbosity of log messages (default: `warn`, possible values: `debug` `info` `warn` `error`)
 
 - **`ETCHOSTS_ETC_HOSTS_PATH`**: path to hosts file (default `/etc/hosts`)
