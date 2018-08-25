@@ -32,12 +32,12 @@ func writeToEtcHosts(ipsToNames ipsToNamesMap, config ConfigSpec) error {
 	}
 
 	// remove tempfile; this might fail if we managed to move it, which is ok
-	defer func(path string) {
-		err := os.Remove(path)
-		if err != nil && !os.IsNotExist(err) {
-			log.Warnf("unexpected error trying to remove temp file %s: %s", path, err)
+	defer func(file *os.File) {
+		file.Close()
+		if err := os.Remove(file.Name()); err != nil && !os.IsNotExist(err) {
+			log.Warnf("unexpected error trying to remove temp file %s: %s", file.Name(), err)
 		}
-	}(tmp.Name())
+	}(tmp)
 
 	// go through file and update existing entries/prune nonexistent entries
 	managedLine := false
