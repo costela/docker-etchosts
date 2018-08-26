@@ -11,9 +11,12 @@ Inspired by [`vagrant-hostmanager`](https://github.com/devopsgroup-io/vagrant-ho
 
 ## Installation
 
-To install from source:
+To install from source, [dep](github.com/golang/dep) must be used:
 ```
-go install github.com/costela/docker-etchosts
+go get -d github.com/costela/docker-etchosts
+cd $GOPATH/src/github.com/costela/docker-etchosts
+dep ensure -vendor-only
+go install
 ```
 And run it as `docker-etchosts`
 

@@ -30,6 +30,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ConfigSpec holds the runtime configuration
 type ConfigSpec struct {
 	LogLevel     string `default:"warn" split_words:"true"`
 	EtcHostsPath string `default:"/etc/hosts" split_words:"true"`
