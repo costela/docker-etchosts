@@ -22,7 +22,10 @@ And run it as `docker-etchosts`
 
 Alternatively, it's also possible to run `docker-etchost` from inside a docker container itself, giving it access to both the hosts file and the docker daemon:
 ```
-docker run --rm -it --network none -v /etc/hosts:/etc/hosts -v /var/run/docker.sock:/var/run/docker.sock costela/docker-etchosts
+docker run -d \
+  --network none --restart always \
+  -v /etc/hosts:/etc/hosts -v /var/run/docker.sock:/var/run/docker.sock \
+  costela/docker-etchosts
 ```
 
 ## Usage
