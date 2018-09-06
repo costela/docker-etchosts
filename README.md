@@ -56,7 +56,7 @@ x.x.x.x     someservice someservice.somenet someservice.someproject someservice.
 
 _NOTE_: Docker ensures the uniqueness of containers' IP addresses and names, but does not ensure uniqueness for aliases. This may lead to multiple entries having the same name, especially for the shorter name versions. The longer, more explict, names are there to help in these cases, enabling different workflows with multiple projects.
 
-To avoid overwriting unrelated settings, `docker-etchosts` will not touch entries not created by itself. If you already manually created hosts entries for containers, you should remove them so that `docker-etchosts` can take over management.
+To avoid overwriting unrelated entries, `docker-etchosts` will not touch entries not managed by itself. If you already manually created hosts entries for IPs used by containers, you should remove them so that `docker-etchosts` can take over management.
 
 All entries managed by `docker-etchosts` will be removed upon termination, returning the hosts file to its initial state.
 
