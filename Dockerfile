@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine
+FROM golang:1.11-alpine AS build
 
 WORKDIR /go/src/app
 
@@ -10,6 +10,10 @@ RUN dep ensure -vendor-only
 
 COPY . .
 
-RUN go install -v
+RUN go build -v
 
-CMD ["app"]
+FROM alpine
+WORKDIR /app
+COPY --from=build /go/src/app/app /app
+
+CMD [ "./app" ]
