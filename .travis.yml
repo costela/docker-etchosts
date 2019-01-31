@@ -1,6 +1,6 @@
 language: go
 
-dist: trusty
+dist: xenial
 
 go:
   - "1.11"
@@ -17,12 +17,21 @@ script: go test -v
 env:
 - GO111MODULE=on
 
+cache:
+  directories:
+    - /home/travis/gopath/pkg/mod
+
+install: true  # skip, handled by "cache" stage
+
 stages:
+  - cache
   - test
   - deploy
 
 jobs:
   include:
+    - stage: cache
+      script: go mod download
     - stage: deploy
       script: skip
       env:
