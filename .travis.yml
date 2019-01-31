@@ -14,6 +14,9 @@ matrix:
 
 script: go test -v
 
+env:
+- GO111MODULE=on
+
 stages:
   - test
   - deploy
