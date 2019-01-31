@@ -39,6 +39,6 @@ jobs:
       before_install:
       deploy:
         provider: script
-        script: 'curl -H "Content-Type: application/json" --data "{\"source_type\": \"Tag\", \"source_name\": \"${TRAVIS_TAG}\"}" -X POST https://registry.hub.docker.com/u/costela/docker-etchosts/trigger/${DOCKER_HUB_TOKEN}'
+        script: 'curl -si -H "Content-Type: application/json" --data "{\"source_type\": \"Tag\", \"source_name\": \"${TRAVIS_TAG}\"}" -X POST https://registry.hub.docker.com/u/costela/docker-etchosts/trigger/${DOCKER_HUB_TOKEN}/'
         on:
           tags: true
