@@ -1,19 +1,21 @@
 FROM golang:1.11-alpine AS build
 
-WORKDIR /go/src/app
+RUN apk add --update git
 
-RUN apk add --update git && go get github.com/golang/dep/cmd/dep
+ENV CGO_ENABLED=0
 
-COPY Gopkg.toml Gopkg.lock ./
+WORKDIR /app
 
-RUN dep ensure -vendor-only
+COPY go.mod go.sum ./
 
-COPY . .
+RUN go mod download
+
+COPY *.go /app/
 
 RUN go build -v
 
 FROM alpine
-WORKDIR /app
-COPY --from=build /go/src/app/app /app
 
-CMD [ "./app" ]
+COPY --from=build /app/docker-etchosts /app
+
+CMD [ "/app/docker-etchosts" ]
