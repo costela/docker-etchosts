@@ -16,6 +16,6 @@ RUN go build -v
 
 FROM alpine
 
-COPY --from=build /app/docker-etchosts /app
+COPY --from=build /app/docker-etchosts /docker-etchosts
 
-CMD [ "/app/docker-etchosts" ]
+CMD [ "/docker-etchosts" ]
