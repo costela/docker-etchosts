@@ -11,14 +11,14 @@ Inspired by [`vagrant-hostmanager`](https://github.com/devopsgroup-io/vagrant-ho
 
 ## Installation
 
-To install from source, [dep](github.com/golang/dep) must be used:
+To install from source, go >= 1.13 is required:
 ```
 go get -d github.com/costela/docker-etchosts
 cd $GOPATH/src/github.com/costela/docker-etchosts
-dep ensure -vendor-only
 go install
 ```
-And run it as `docker-etchosts`
+And run it as `docker-etchosts`.  
+(using `go get` directly is currently not possible because of an issue between `docker.io/go-docker` and `go mod`)
 
 Alternatively, it's also possible to run `docker-etchost` from inside a docker container itself, giving it access to both the hosts file and the docker daemon:
 ```
