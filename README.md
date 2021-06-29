@@ -39,11 +39,15 @@ Entries are created for each container network with the following names:
 
 Each container will thereforr have up to 4 entries per alias: CONTAINER_ALIAS, CONTAINER_ALIAS.PROJECT, CONTAINER_ALIAS.NETWORK_NAME, CONTAINER_ALIAS.PROJECT.NETWORK_NAME
 
+Arbitrary hosts entries can be added via a custom label (`com.costela.docker-etchosts.add_hosts`) by specifying a single or array of host names.
+
 This means the following `docker-compose.yml` setup for project `someproject`:
 ```yaml
 services:
   someservice:
     ...
+    labels:
+        - 'com.costela.docker-etchosts.add_hosts=["a.example.com", "b.example.com"]'
     networks:
       somenet:
         aliases:
@@ -51,7 +55,7 @@ services:
 ```
 Would generate the following hosts entry:
 ```
-x.x.x.x     someservice someservice.somenet someservice.someproject someservice.someproject.somenet somealias somealias.somenet somealias.someproject somealias.someproject.somenet
+x.x.x.x     someservice someservice.somenet someservice.someproject someservice.someproject.somenet somealias somealias.somenet somealias.someproject somealias.someproject.somenet a.example.com b.example.com
 ```
 
 _NOTE_: Docker ensures the uniqueness of containers' IP addresses and names, but does not ensure uniqueness for aliases. This may lead to multiple entries having the same name, especially for the shorter name versions. The longer, more explict, names are there to help in these cases, enabling different workflows with multiple projects.
