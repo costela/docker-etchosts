@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -87,6 +88,28 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 		names = appendNames(names, strings.Trim(containerFull.Name, "/"))
 		for _, name := range netInfo.Aliases {
 			names = appendNames(names, name)
+		}
+
+		if label, ok := containerFull.Config.Labels["com.costela.docker-etchosts.add_hosts"]; ok {
+			if (strings.HasPrefix(label, "[")) {
+				var parsed []string; 
+				err := json.Unmarshal([]byte(label), &parsed)
+				if err != nil {
+					log.Errorf("error parsing JSON: %s", err)
+				}
+				names = append(names, parsed...)
+			} else if (strings.HasPrefix(label, "\"")) {
+				var parsed string; 
+				err := json.Unmarshal([]byte(label), &parsed)
+				if err != nil {
+					log.Errorf("error parsing JSON: %s", err)
+				}
+				names = append(names, parsed)
+			} else if (strings.HasPrefix(label, "{")) {
+				log.Errorf("JSON objects are not supported: %s", label)
+			} else {
+				names = append(names, label)
+			}
 		}
 
 		ipsToNames[netInfo.IPAddress] = names
