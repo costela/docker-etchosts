@@ -46,6 +46,12 @@ func (testClient) ContainerList(_ context.Context, _ types.ContainerListOptions)
 				"/some_nonnetworked_service",
 			},
 		},
+		{
+			ID: "555",
+			Names: []string{
+				"/some_labeled_service",
+			},
+		},
 	}, nil
 }
 
@@ -118,6 +124,23 @@ func (testClient) ContainerInspect(_ context.Context, ID string) (types.Containe
 				},
 			},
 		}, nil
+	case "555":
+		return types.ContainerJSON{
+			ContainerJSONBase: &types.ContainerJSONBase{Name: "service5"},
+			Config:            &container.Config{Labels: map[string]string{
+				"com.costela.docker-etchosts.add_hosts": "[\"a.example.com\", \"b.example.com\"]",
+			}},
+			NetworkSettings: &types.NetworkSettings{
+				Networks: map[string]*network.EndpointSettings{
+					"bridge": {
+						IPAddress: "5.6.7.8",
+						Aliases: []string{
+							"somealias",
+						},
+					},
+				},
+			},
+		}, nil
 	default:
 		panic("whaaa?")
 	}
@@ -183,6 +206,11 @@ func Test_getIPsToNames(t *testing.T) {
 				"somesecondaryalias1", "somesecondaryalias1.somesecondarynetwork", "somesecondaryalias1.someotherproject", "somesecondaryalias1.someotherproject.somesecondarynetwork",
 			},
 		}, false},
+		{"query with label", args{testClient{}, "555"}, ipsToNamesMap{
+			"5.6.7.8": []string{
+				"service5", "somealias", "a.example.com", "b.example.com",
+			},
+		}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -223,6 +251,9 @@ func Test_getAllIPsToNames(t *testing.T) {
 			"4.5.6.7": []string{
 				"service3", "service3.somesecondarynetwork", "service3.someotherproject", "service3.someotherproject.somesecondarynetwork",
 				"somesecondaryalias1", "somesecondaryalias1.somesecondarynetwork", "somesecondaryalias1.someotherproject", "somesecondaryalias1.someotherproject.somesecondarynetwork",
+			},
+			"5.6.7.8": []string{
+				"service5", "somealias", "a.example.com", "b.example.com", 
 			},
 		}, false},
 	}
