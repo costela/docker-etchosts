@@ -14,3 +14,5 @@
 
 # misc
 *.tmp
+
+dist/
