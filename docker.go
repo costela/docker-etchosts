@@ -25,6 +25,8 @@ type dockerClientPinger interface {
 	Ping(context.Context) (types.Ping, error)
 }
 
+const dockerLabel string = "net.costela.docker-etchosts.extra_hosts";
+
 func getAllIPsToNames(client dockerClienter) (ipsToNamesMap, error) {
 	containers, err := client.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
@@ -90,7 +92,7 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 			names = appendNames(names, name)
 		}
 
-		if label, ok := containerFull.Config.Labels["com.costela.docker-etchosts.add_hosts"]; ok {
+		if label, ok := containerFull.Config.Labels[dockerLabel]; ok {
 			if (strings.HasPrefix(label, "[")) {
 				var parsed []string; 
 				err := json.Unmarshal([]byte(label), &parsed)
