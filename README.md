@@ -39,7 +39,7 @@ Entries are created for each container network with the following names:
 
 Each container will thereforr have up to 4 entries per alias: CONTAINER_ALIAS, CONTAINER_ALIAS.PROJECT, CONTAINER_ALIAS.NETWORK_NAME, CONTAINER_ALIAS.PROJECT.NETWORK_NAME
 
-Arbitrary hosts entries can be added via a custom label (`com.costela.docker-etchosts.add_hosts`) by specifying a single or array of host names.
+Arbitrary hosts entries can be added via a custom label (`net.costela.docker-etchosts.extra_hosts`) by specifying a single or array of host names.
 
 This means the following `docker-compose.yml` setup for project `someproject`:
 ```yaml
@@ -47,7 +47,7 @@ services:
   someservice:
     ...
     labels:
-        - 'com.costela.docker-etchosts.add_hosts=["a.example.com", "b.example.com"]'
+        - 'net.costela.docker-etchosts.extra_hosts=["a.example.com", "b.example.com"]'
     networks:
       somenet:
         aliases:
