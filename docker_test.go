@@ -128,7 +128,7 @@ func (testClient) ContainerInspect(_ context.Context, ID string) (types.Containe
 		return types.ContainerJSON{
 			ContainerJSONBase: &types.ContainerJSONBase{Name: "service5"},
 			Config:            &container.Config{Labels: map[string]string{
-				dockerLabel: `["a.example.com", "b.example.com"]`,
+				dockerLabel: `["a.example.com", "b.example.com", "invalid."]`,
 			}},
 			NetworkSettings: &types.NetworkSettings{
 				Networks: map[string]*network.EndpointSettings{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"docker.io/go-docker/api/types"
@@ -87,30 +88,51 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 			return names
 		}
 
+		validateHostname := func(hosts ...string) []string {
+			var validHosts []string
+
+			for _, host := range hosts {
+				matches, err := regexp.MatchString("^[a-zA-Z][a-zA-Z0-9.-]*[a-zA-Z0-9]$", host)
+	
+				if err != nil {
+					log.Fatal(err)
+				}
+	
+				if matches {
+					validHosts = append(validHosts, host)
+				} else {
+					log.Warnf("Skipping '%s' doas not seem a valid hostname.", host)
+				}
+			}
+	
+			return validHosts
+		}
+	
 		names = appendNames(names, strings.Trim(containerFull.Name, "/"))
 		for _, name := range netInfo.Aliases {
 			names = appendNames(names, name)
 		}
 
 		if label, ok := containerFull.Config.Labels[dockerLabel]; ok {
+			label = strings.TrimSpace(label)
 			if (strings.HasPrefix(label, "[")) {
-				var parsed []string; 
+				var parsed []string
 				err := json.Unmarshal([]byte(label), &parsed)
 				if err != nil {
 					log.Errorf("error parsing JSON: %s", err)
 				}
-				names = append(names, parsed...)
-			} else if (strings.HasPrefix(label, "\"")) {
+				names = append(names, validateHostname(parsed...)...)
+			} else if (strings.HasPrefix(label, `"`)) {
 				var parsed string; 
 				err := json.Unmarshal([]byte(label), &parsed)
 				if err != nil {
 					log.Errorf("error parsing JSON: %s", err)
 				}
-				names = append(names, parsed)
+				names = append(names, validateHostname(parsed)...)
 			} else if (strings.HasPrefix(label, "{")) {
 				log.Errorf("JSON objects are not supported: %s", label)
 			} else {
-				names = append(names, label)
+				names = append(names, validateHostname(label)...)
 			}
 		}
 
