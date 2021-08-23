@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/costela/docker-etchosts.svg?branch=master)](https://travis-ci.org/costela/docker-etchosts)
+[![Build Status](https://github.com/costela/docker-etchosts/actions/workflows/go.yml/badge.svg)](https://github.com/1ed/docker-etchosts/actions?query=branch%3Amaster)
 [![Go Report Card](https://goreportcard.com/badge/github.com/costela/docker-etchosts)](https://goreportcard.com/report/github.com/costela/docker-etchosts)
 
 # docker-etchosts
