@@ -4,7 +4,7 @@ require (
 	docker.io/go-docker v1.0.0
 	github.com/Microsoft/go-winio v0.4.9 // indirect
 	github.com/cenkalti/backoff v2.1.1+incompatible
-	github.com/docker/distribution v0.0.0-20170726174610-edc3ab29cdff // indirect
+	github.com/docker/distribution v2.8.0+incompatible // indirect
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/docker/go-connections v0.3.0 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
