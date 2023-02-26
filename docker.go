@@ -121,18 +121,18 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 				if err != nil {
 					log.Errorf("error parsing JSON: %s", err)
 				}
-				names = append(names, validateHostname(parsed...)...)
+				names = append(validateHostname(parsed...), names...)
 			} else if strings.HasPrefix(label, `"`) {
 				var parsed string
 				err := json.Unmarshal([]byte(label), &parsed)
 				if err != nil {
 					log.Errorf("error parsing JSON: %s", err)
 				}
-				names = append(names, validateHostname(parsed)...)
+				names = append(validateHostname(parsed), names...)
 			} else if strings.HasPrefix(label, "{") {
 				log.Errorf("JSON objects are not supported: %s", label)
 			} else {
-				names = append(names, validateHostname(label)...)
+				names = append(validateHostname(label), names...)
 			}
 		}
 
