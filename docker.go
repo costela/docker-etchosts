@@ -26,7 +26,7 @@ type dockerClientPinger interface {
 	Ping(context.Context) (types.Ping, error)
 }
 
-const dockerLabel string = "net.costela.docker-etchosts.extra_hosts";
+const dockerLabel string = "net.costela.docker-etchosts.extra_hosts"
 
 func getAllIPsToNames(client dockerClienter) (ipsToNamesMap, error) {
 	containers, err := client.ContainerList(context.Background(), types.ContainerListOptions{})
@@ -93,21 +93,21 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 
 			for _, host := range hosts {
 				matches, err := regexp.MatchString("^[a-zA-Z][a-zA-Z0-9.-]*[a-zA-Z0-9]$", host)
-	
+
 				if err != nil {
 					log.Fatal(err)
 				}
-	
+
 				if matches {
 					validHosts = append(validHosts, host)
 				} else {
 					log.Warnf("Skipping '%s' doas not seem a valid hostname.", host)
 				}
 			}
-	
+
 			return validHosts
 		}
-	
+
 		names = appendNames(names, strings.Trim(containerFull.Name, "/"))
 		for _, name := range netInfo.Aliases {
 			names = appendNames(names, name)
@@ -115,31 +115,43 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 
 		if label, ok := containerFull.Config.Labels[dockerLabel]; ok {
 			label = strings.TrimSpace(label)
-			if (strings.HasPrefix(label, "[")) {
+			if strings.HasPrefix(label, "[") {
 				var parsed []string
 				err := json.Unmarshal([]byte(label), &parsed)
 				if err != nil {
 					log.Errorf("error parsing JSON: %s", err)
 				}
 				names = append(names, validateHostname(parsed...)...)
-			} else if (strings.HasPrefix(label, `"`)) {
-				var parsed string; 
+			} else if strings.HasPrefix(label, `"`) {
+				var parsed string
 				err := json.Unmarshal([]byte(label), &parsed)
 				if err != nil {
 					log.Errorf("error parsing JSON: %s", err)
 				}
 				names = append(names, validateHostname(parsed)...)
-			} else if (strings.HasPrefix(label, "{")) {
+			} else if strings.HasPrefix(label, "{") {
 				log.Errorf("JSON objects are not supported: %s", label)
 			} else {
 				names = append(names, validateHostname(label)...)
 			}
 		}
 
-		ipsToNames[netInfo.IPAddress] = names
+		ipsToNames[netInfo.IPAddress] = unique(names)
 	}
 
 	return ipsToNames, nil
+}
+
+func unique(slice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range slice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }
 
 func syncAndListenForEvents(client dockerClienter, config ConfigSpec) {
