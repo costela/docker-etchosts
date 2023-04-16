@@ -8,7 +8,7 @@ require (
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/docker/go-connections v0.3.0 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
-	github.com/gogo/protobuf v0.0.0-20170307180453-100ba4e88506 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
