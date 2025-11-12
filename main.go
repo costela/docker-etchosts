@@ -24,7 +24,7 @@ import (
 	"strings"
 	"syscall"
 
-	docker "docker.io/go-docker"
+	docker "github.com/docker/docker/client"
 
 	"github.com/kelseyhightower/envconfig"
 	log "github.com/sirupsen/logrus"
@@ -64,7 +64,7 @@ func main() {
 		cleanup(config)
 	}()
 
-	client, err := docker.NewEnvClient()
+	client, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		log.Fatalf("error initializing docker client: %s", err)
 	}

@@ -7,9 +7,10 @@ import (
 	"regexp"
 	"strings"
 
-	"docker.io/go-docker/api/types"
-	"docker.io/go-docker/api/types/events"
-	"docker.io/go-docker/api/types/filters"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/container"
 	"github.com/cenkalti/backoff"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,9 +18,9 @@ import (
 type ipsToNamesMap map[string][]string
 
 type dockerClienter interface {
-	ContainerList(context.Context, types.ContainerListOptions) ([]types.Container, error)
+	ContainerList(context.Context, container.ListOptions) ([]types.Container, error)
 	ContainerInspect(context.Context, string) (types.ContainerJSON, error)
-	Events(context.Context, types.EventsOptions) (<-chan events.Message, <-chan error)
+	Events(context.Context, events.ListOptions) (<-chan events.Message, <-chan error)
 }
 
 type dockerClientPinger interface {
@@ -29,7 +30,7 @@ type dockerClientPinger interface {
 const dockerLabel string = "net.costela.docker-etchosts.extra_hosts";
 
 func getAllIPsToNames(client dockerClienter) (ipsToNamesMap, error) {
-	containers, err := client.ContainerList(context.Background(), types.ContainerListOptions{})
+	containers, err := client.ContainerList(context.Background(), container.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +145,7 @@ func getIPsToNames(client dockerClienter, id string) (ipsToNamesMap, error) {
 
 func syncAndListenForEvents(client dockerClienter, config ConfigSpec) {
 
-	eventOpts := types.EventsOptions{
+	eventOpts := events.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("type", "container"),
 			filters.Arg("event", "start"),
