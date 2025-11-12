@@ -11,7 +11,7 @@ Inspired by [`vagrant-hostmanager`](https://github.com/devopsgroup-io/vagrant-ho
 
 ## Installation
 
-To install from source, go >= 1.13 is required:
+To install from source, go >= 1.24 is required:
 ```
 go get -d github.com/costela/docker-etchosts
 cd $GOPATH/src/github.com/costela/docker-etchosts

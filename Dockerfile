@@ -2,7 +2,7 @@
 # Based on https://docs.docker.com/language/golang/build-images/#multi-stage-builds
 
 # Build the application from source
-FROM golang:1.22
+FROM golang:1.24
 
 WORKDIR /app
 

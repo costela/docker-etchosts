@@ -7,10 +7,10 @@ import (
 	"reflect"
 	"testing"
 
-	"docker.io/go-docker/api/types"
-	"docker.io/go-docker/api/types/container"
-	"docker.io/go-docker/api/types/events"
-	"docker.io/go-docker/api/types/network"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/network"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,7 +20,7 @@ func init() {
 
 type testClient struct{}
 
-func (testClient) ContainerList(_ context.Context, _ types.ContainerListOptions) ([]types.Container, error) {
+func (testClient) ContainerList(_ context.Context, _ container.ListOptions) ([]types.Container, error) {
 	return []types.Container{
 		{
 			ID: "111",
@@ -146,7 +146,7 @@ func (testClient) ContainerInspect(_ context.Context, ID string) (types.Containe
 	}
 }
 
-func (testClient) Events(context.Context, types.EventsOptions) (<-chan events.Message, <-chan error) {
+func (testClient) Events(context.Context, events.ListOptions) (<-chan events.Message, <-chan error) {
 	return nil, nil
 }
 
