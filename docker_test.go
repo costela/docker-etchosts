@@ -103,6 +103,7 @@ func (testClient) ContainerInspect(_ context.Context, ID string) (types.Containe
 						Aliases: []string{
 							"someotheralias1",
 							"nonuniquealias",
+							"service3",
 						},
 					},
 					"somesecondarynetwork": {
@@ -127,7 +128,7 @@ func (testClient) ContainerInspect(_ context.Context, ID string) (types.Containe
 	case "555":
 		return types.ContainerJSON{
 			ContainerJSONBase: &types.ContainerJSONBase{Name: "service5"},
-			Config:            &container.Config{Labels: map[string]string{
+			Config: &container.Config{Labels: map[string]string{
 				dockerLabel: `["a.example.com", "b.example.com", "invalid."]`,
 			}},
 			NetworkSettings: &types.NetworkSettings{
@@ -195,7 +196,7 @@ func Test_getIPsToNames(t *testing.T) {
 				"nonuniquealias", "nonuniquealias.somenetwork", "nonuniquealias.someproject", "nonuniquealias.someproject.somenetwork",
 			},
 		}, false},
-		{"query with 2 networks", args{testClient{}, "333"}, ipsToNamesMap{
+		{"query with 3 networks, one same as project name", args{testClient{}, "333"}, ipsToNamesMap{
 			"3.4.5.6": []string{
 				"service3", "service3.someothernetwork", "service3.someotherproject", "service3.someotherproject.someothernetwork",
 				"someotheralias1", "someotheralias1.someothernetwork", "someotheralias1.someotherproject", "someotheralias1.someotherproject.someothernetwork",
@@ -208,7 +209,7 @@ func Test_getIPsToNames(t *testing.T) {
 		}, false},
 		{"query with label", args{testClient{}, "555"}, ipsToNamesMap{
 			"5.6.7.8": []string{
-				"service5", "somealias", "a.example.com", "b.example.com",
+				"a.example.com", "b.example.com", "service5", "somealias",
 			},
 		}, false},
 	}
@@ -253,7 +254,7 @@ func Test_getAllIPsToNames(t *testing.T) {
 				"somesecondaryalias1", "somesecondaryalias1.somesecondarynetwork", "somesecondaryalias1.someotherproject", "somesecondaryalias1.someotherproject.somesecondarynetwork",
 			},
 			"5.6.7.8": []string{
-				"service5", "somealias", "a.example.com", "b.example.com", 
+				"a.example.com", "b.example.com", "service5", "somealias",
 			},
 		}, false},
 	}
